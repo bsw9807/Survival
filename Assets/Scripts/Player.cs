@@ -1,15 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class Player : MonoBehaviour
 {
-    public FixedJoystick joystick;
-    Rigidbody2D rb;
-    Animator anim;
+    public float moveSpeed;
     Vector2 move;
 
-    public float moveSpeed;
+    public Camera followCamera;
+    public FixedJoystick joystick;
+
+    public int maxHP;
+    public int curHP;
+
+    public bool isAttack = false;
+
+    Rigidbody2D rb;
+    Animator anim;
+    BoxCollider2D attackRange;
 
     public enum UnitState
     {
@@ -22,11 +32,14 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
+        attackRange = GetComponentInChildren<BoxCollider2D>();
+        curHP = maxHP;
     }
 
     void Update()
     {
         DoMove();
+        DoAttack();
     }
 
     void FixedUpdate()
@@ -80,5 +93,22 @@ public class Player : MonoBehaviour
         }
 
         rb.MovePosition(rb.position + move * moveSpeed * Time.fixedDeltaTime);
+    }
+
+    void DoAttack()
+    {        
+        if(!isAttack)
+            return;
+        StartCoroutine(Attacked());
+
+        isAttack = false;
+    }
+
+    IEnumerator Attacked()
+    {
+        SetState(UnitState.attack);
+        attackRange.enabled = true;
+        yield return new WaitForSeconds(0.3f);
+        attackRange.enabled = false;
     }
 }
